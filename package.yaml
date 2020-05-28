@@ -1,0 +1,71 @@
+name:                repomoving
+version:             0.1.0
+#synopsis:
+#description:
+homepage:            https://github.com/matsubara0507/repomoving#readme
+license:             MIT
+author:              MATSUBARA Nobutada
+maintainer:          t12307043@gunma-u.ac.jp
+copyright:           MATSUBARA Nobutada
+category:            Web
+description:         Please see the README on GitHub at <https://github.com/matsubara0507/repomoving#readme>
+
+extra-source-files:
+- README.md
+- CHANGELOG.md
+
+ghc-options:
+- -Wall
+- -Wcompat
+- -Wincomplete-record-updates
+- -Wincomplete-uni-patterns
+- -Wredundant-constraints
+- -optP-Wno-nonportable-include-path
+
+default-extensions:
+- NoImplicitPrelude
+
+- ConstraintKinds
+- DataKinds
+- FlexibleContexts
+- FlexibleInstances
+- GeneralizedNewtypeDeriving
+- LambdaCase
+- MultiWayIf
+- NumericUnderscores
+- OverloadedLabels
+- OverloadedStrings
+- PolyKinds
+- RankNTypes
+- StandaloneDeriving
+- TypeFamilies
+- TypeOperators
+- TypeSynonymInstances
+
+dependencies:
+- base >= 4.7 && < 5
+- rio >= 0.1.1.0
+- extensible >= 0.6
+- mix
+
+library:
+  source-dirs: src
+
+executables:
+  repomoving:
+    main: Main.hs
+    source-dirs: app
+    dependencies:
+    - repomoving
+    - githash
+    - dotenv
+
+tests:
+  repomoving-test:
+    main: Spec.hs
+    source-dirs: test
+    dependencies:
+    - repomoving
+    - tasty
+    - tasty-hspec
+    other-modules: []
