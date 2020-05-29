@@ -52,6 +52,32 @@ packages:
   original:
     subdir: mix
     url: https://github.com/matsubara0507/mix.hs/archive/a0b2b9394c340186c9a8a63808f0db1752ada4ae.tar.gz
+- completed:
+    size: 8476
+    subdir: mix-plugin-github
+    url: https://github.com/matsubara0507/mix.hs/archive/a0b2b9394c340186c9a8a63808f0db1752ada4ae.tar.gz
+    name: mix-plugin-github
+    version: 0.2.0
+    sha256: f879d5d044d8531814a8cd5bbda08ab2a513eb04a150e44526ea0f49961e38a1
+    pantry-tree:
+      size: 386
+      sha256: bf1584e7c1e67bbeb4cb377172f7910c95797d9fb023d372895e0f7727872075
+  original:
+    subdir: mix-plugin-github
+    url: https://github.com/matsubara0507/mix.hs/archive/a0b2b9394c340186c9a8a63808f0db1752ada4ae.tar.gz
+- completed:
+    size: 8476
+    subdir: mix-plugin-shell
+    url: https://github.com/matsubara0507/mix.hs/archive/a0b2b9394c340186c9a8a63808f0db1752ada4ae.tar.gz
+    name: mix-plugin-shell
+    version: 0.1.0
+    sha256: f879d5d044d8531814a8cd5bbda08ab2a513eb04a150e44526ea0f49961e38a1
+    pantry-tree:
+      size: 383
+      sha256: 7bbce9d5ea01f6432cecf3151b7c93751d508c0b28444436365eebda58f599d8
+  original:
+    subdir: mix-plugin-shell
+    url: https://github.com/matsubara0507/mix.hs/archive/a0b2b9394c340186c9a8a63808f0db1752ada4ae.tar.gz
 snapshots:
 - completed:
     size: 496112

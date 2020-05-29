@@ -11,8 +11,10 @@ import qualified Data.Yaml              as Y
 import           GetOpt                 (withGetOpt')
 import           Mix
 import           Mix.Plugin.Config      as MixConfig
+import qualified Mix.Plugin.GitHub      as MixGitHub
 import           Mix.Plugin.Logger      as MixLogger
 import           Repomoving.Cmd
+import           System.Environment     (getEnv)
 import qualified Version
 
 main :: IO ()
@@ -30,6 +32,7 @@ main = withGetOpt' "[options] [input-file]" opts $ \r args usage -> do
         <: #to      @= toOpt
         <: #prefix  @= prefixOpt
         <: #suffix  @= suffixOpt
+        <: #work    @= workOpt
         <: nil
 
 type Options = Record
@@ -40,6 +43,7 @@ type Options = Record
    , "to"      >: Text
    , "prefix"  >: Maybe Text
    , "suffix"  >: Maybe Text
+   , "work"    >: FilePath
    ]
 
 validate :: Options -> Bool
@@ -66,13 +70,19 @@ prefixOpt = fmap fromString <$> optLastArg [] ["prefix"] "TEXT" "Prefix for move
 suffixOpt :: OptDescr' (Maybe Text)
 suffixOpt = fmap fromString <$> optLastArg [] ["suffix"] "TEXT" "Suffix for moved repositories name"
 
+workOpt :: OptDescr' FilePath
+workOpt = fromMaybe ".repomoving" <$> optLastArg [] ["work"] "PATH" "Work direcotry path"
+
 runCmd :: Options -> Maybe FilePath -> IO ()
 runCmd opts path = do
-  repos <- Y.decodeFileThrow $ fromMaybe "./config.yaml" path :: IO [Text]
+  gToken <- liftIO $ fromString <$> getEnv "GH_TOKEN"
+  repos  <- Y.decodeFileThrow $ fromMaybe "./config.yaml" path :: IO [Text]
   let config = shrink $ #repositories @= repos <: opts
       plugin = hsequence
              $ #logger <@=> MixLogger.buildPlugin logOpts
+            <: #github <@=> MixGitHub.buildPlugin gToken
             <: #config <@=> MixConfig.buildPlugin config
+            <: #work   <@=> pure (opts ^. #work)
             <: nil
   Mix.run plugin cmd
   where

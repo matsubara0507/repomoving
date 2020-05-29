@@ -11,6 +11,8 @@ extra-deps:
   commit: a0b2b9394c340186c9a8a63808f0db1752ada4ae
   subdirs:
   - mix
+  - mix-plugin-github
+  - mix-plugin-shell
 
 docker:
   repo: matsubara0507/stack-build
