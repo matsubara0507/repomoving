@@ -13,7 +13,8 @@ import           Mix
 import           Mix.Plugin.Config      as MixConfig
 import qualified Mix.Plugin.GitHub      as MixGitHub
 import           Mix.Plugin.Logger      as MixLogger
-import           Repomoving.Cmd
+import           Repomoving.Cmd         as Cmd
+import           Repomoving.Env
 import           System.Environment     (getEnv)
 import qualified Version
 
@@ -23,7 +24,8 @@ main = withGetOpt' "[options] [input-file]" opts $ \r args usage -> do
   if | r ^. #help       -> hPutBuilder stdout (fromString usage)
      | r ^. #version    -> hPutBuilder stdout (Version.build version <> "\n")
      | not (validate r) -> hPutBuilder stderr "invalid arguments"
-     | otherwise        -> runCmd r (listToMaybe args)
+     | r ^. #delete     -> runCmd Cmd.deleteRepositories r (listToMaybe args)
+     | otherwise        -> runCmd cmd r (listToMaybe args)
   where
     opts = #help    @= helpOpt
         <: #version @= versionOpt
@@ -34,6 +36,7 @@ main = withGetOpt' "[options] [input-file]" opts $ \r args usage -> do
         <: #suffix  @= suffixOpt
         <: #work    @= workOpt
         <: #private @= privateOpt
+        <: #delete  @= deleteOpt
         <: nil
 
 type Options = Record
@@ -46,6 +49,7 @@ type Options = Record
    , "suffix"  >: Maybe Text
    , "work"    >: FilePath
    , "private" >: Bool
+   , "delete"  >: Bool
    ]
 
 validate :: Options -> Bool
@@ -78,8 +82,11 @@ workOpt = fromMaybe ".repomoving" <$> optLastArg [] ["work"] "PATH" "Work direco
 privateOpt :: OptDescr' Bool
 privateOpt = optFlag [] ["private"] "Make private repositories"
 
-runCmd :: Options -> Maybe FilePath -> IO ()
-runCmd opts path = do
+deleteOpt :: OptDescr' Bool
+deleteOpt = optFlag [] ["delete"] "Delete target reposirtories"
+
+runCmd :: (RIO Env ()) -> Options -> Maybe FilePath -> IO ()
+runCmd act opts path = do
   gToken <- liftIO $ fromString <$> getEnv "GH_TOKEN"
   repos  <- Y.decodeFileThrow $ fromMaybe "./config.yaml" path :: IO [Text]
   let config = shrink $ #repositories @= repos <: opts
@@ -89,7 +96,7 @@ runCmd opts path = do
             <: #config <@=> MixConfig.buildPlugin config
             <: #work   <@=> pure (opts ^. #work)
             <: nil
-  Mix.run plugin cmd
+  Mix.run plugin act
   where
     logOpts = #handle @= stdout
            <: #verbose @= (opts ^. #verbose)
