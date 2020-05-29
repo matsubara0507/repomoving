@@ -38,7 +38,8 @@ createRepository name = do
   config <- asks (view #config)
   let owner' = GitHub.mkName Proxy $ config ^. #to
       name'  = GitHub.mkName Proxy $ name `appendAffix` config
-  resp <- MixGitHub.fetch $ GitHub.createOrganizationRepoR owner' (GitHub.newRepo name')
+      repo   = (GitHub.newRepo name') { GitHub.newRepoPrivate = Just (config ^. #private) }
+  resp <- MixGitHub.fetch $ GitHub.createOrganizationRepoR owner' repo
   case resp of
     Left _  -> pure Nothing
     Right _ -> pure (Just ())

@@ -10,6 +10,7 @@ type Config = Record
    , "to"           >: Text
    , "prefix"       >: Maybe Text
    , "suffix"       >: Maybe Text
+   , "private"      >: Bool
    ]
 
 appendAffix :: Text -> Config -> Text

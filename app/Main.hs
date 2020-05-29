@@ -33,6 +33,7 @@ main = withGetOpt' "[options] [input-file]" opts $ \r args usage -> do
         <: #prefix  @= prefixOpt
         <: #suffix  @= suffixOpt
         <: #work    @= workOpt
+        <: #private @= privateOpt
         <: nil
 
 type Options = Record
@@ -44,6 +45,7 @@ type Options = Record
    , "prefix"  >: Maybe Text
    , "suffix"  >: Maybe Text
    , "work"    >: FilePath
+   , "private" >: Bool
    ]
 
 validate :: Options -> Bool
@@ -72,6 +74,9 @@ suffixOpt = fmap fromString <$> optLastArg [] ["suffix"] "TEXT" "Suffix for move
 
 workOpt :: OptDescr' FilePath
 workOpt = fromMaybe ".repomoving" <$> optLastArg [] ["work"] "PATH" "Work direcotry path"
+
+privateOpt :: OptDescr' Bool
+privateOpt = optFlag [] ["private"] "Make private repositories"
 
 runCmd :: Options -> Maybe FilePath -> IO ()
 runCmd opts path = do
