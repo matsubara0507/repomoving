@@ -19,6 +19,7 @@ cmd = do
   for_ repositories $ \repo -> evalContT $ do
     _ <- lift (createRepository repo) !?? warn repo "cannot create repository"
     _ <- lift (copyRepository repo)
+    _ <- lift (changeDefaultBranch repo) !?? warn repo "cannnot change default branch"
     MixLogger.logInfo $ display ("success: " <> repo)
   where
     warn r msg = exit $ MixLogger.logWarn (display $ T.pack msg <> ": " <> r)
@@ -45,7 +46,7 @@ createRepository name = do
     Right _ -> pure (Just ())
 
 deleteRepository :: Text -> RIO Env (Maybe ())
-deleteRepository name =  do
+deleteRepository name = do
   config <- asks (view #config)
   let (owner', name') = (GitHub.mkName Proxy $ config ^. #from, GitHub.mkName Proxy name)
   resp <- MixGitHub.fetch $ GitHub.deleteRepoR owner' name'
@@ -78,3 +79,41 @@ buildRepositoryUrls repo = do
 
 toWorkWith :: FilePath -> FilePath -> FilePath
 toWorkWith path = (<> "/" <> path)
+
+changeDefaultBranch :: Text -> RIO Env (Maybe ())
+changeDefaultBranch name = do
+  config <- asks (view #config)
+  branch <- fetchDefaultBranch (config ^. #from) name
+  flip (maybe $ pure Nothing) branch $
+    updateDefaultBranch (config ^. #to) (name `appendAffix` config)
+
+fetchDefaultBranch :: Text -> Text -> RIO Env (Maybe Text)
+fetchDefaultBranch owner name = do
+  resp <- MixGitHub.fetch $ GitHub.repositoryR owner' name'
+  case resp of
+    Right r -> pure $ GitHub.repoDefaultBranch r
+    Left _  -> pure Nothing
+  where
+    owner' = GitHub.mkName Proxy owner
+    name'  = GitHub.mkName Proxy name
+
+updateDefaultBranch :: Text -> Text -> Text -> RIO Env (Maybe ())
+updateDefaultBranch owner name branch = do
+  config <- asks (view #config)
+  let repo = defEditRepo
+        { GitHub.editDefaultBranch = Just branch
+        , GitHub.editPrivate = Just (config ^. #private)
+        }
+  resp <- MixGitHub.fetch $ GitHub.editRepoR owner' name' repo
+  case resp of
+    Right _ -> pure $ Just ()
+    Left _  -> pure Nothing
+  where
+    owner' = GitHub.mkName Proxy owner
+    name'  = GitHub.mkName Proxy name
+
+defEditRepo :: GitHub.EditRepo
+defEditRepo =
+  GitHub.EditRepo
+    Nothing Nothing Nothing Nothing Nothing Nothing
+    Nothing Nothing Nothing Nothing Nothing Nothing
